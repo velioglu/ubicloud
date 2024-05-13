@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../loader"
+require "time"
+require "optparse"
+
+def main(options)
+  hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
+  wait_until(hetzner_server_st, "wait")
+
+  vmh = hetzner_server_st.subject
+  image_download_st = vmh.download_boot_image("github-ubuntu-2204")
+  wait_until(image_download_st)
+
+  project = Project.create_with_id(name: "Test Project")
+
+  # 50637119 is the preinstall app's installation id
+  GithubInstallation.create_with_id(
+    installation_id: 50637119,
+    name: "velioglu",
+    type: "User",
+    project_id: project.id
+  )
+end
+
+def wait_until(st, label = nil)
+  while (loaded_st = Strand[st.id]) && loaded_st.label != label
+    if loaded_st.label == "failed"
+      log(st.reload, "FAILED: #{loaded_st.exitval.fetch("msg")}")
+      st.destroy
+      exit 1
+    end
+    log(st.reload, "waiting #{label ? "for #{label}" : "exit"}")
+    sleep 10
+  end
+  log(st, "reached")
+end
+
+def log(st, msg)
+  resources = case st.prog
+  when "Test::HetznerServer"
+    "VmHost.#{Strand[st.stack.first["vm_host_id"]]&.label}"
+  when "Test::VmGroup"
+    st.stack.first["vms"].map { "Vm.#{Strand[_1]&.label}" }.join(", ")
+  when "Test::Vm"
+    "Vm.#{Strand[st.stack.first["subject_id"]]&.label}"
+  else
+    "#{st.prog}.#{st.label}"
+  end
+  $stdout.write "#{Time.now.utc.iso8601} | #{st.id} | #{st.prog}.#{st.label} | #{msg} | #{resources}\n"
+end
+
+options = {}
+OptionParser.new do |opts|
+  opts.on("--vm-host-id VM_HOST_ID", "Use existing vm host") { |v| options[:vm_host_id] = (v.length == 26) ? VmHost.from_ubid(v).id : v }
+end.parse!
+
+clover_freeze
+
+$stdout.sync = true
+
+main(options)
