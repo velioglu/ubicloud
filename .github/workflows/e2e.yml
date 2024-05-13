@@ -90,7 +90,7 @@ jobs:
 
     - name: Add e2e script to Procfile
       run: |
-        echo "ci_setup: bin/ci_setup_host" >> Procfile
+        echo "e2e: bin/ci" >> Procfile
 
     - name: Run services
       env:
@@ -105,6 +105,15 @@ jobs:
         UBICLOUD_IMAGES_BLOB_STORAGE_ACCESS_KEY: ${{ secrets.UBICLOUD_IMAGES_BLOB_STORAGE_ACCESS_KEY }}
         UBICLOUD_IMAGES_BLOB_STORAGE_SECRET_KEY: ${{ secrets.UBICLOUD_IMAGES_BLOB_STORAGE_SECRET_KEY }}
         UBICLOUD_IMAGES_BLOB_STORAGE_CERTS: ${{ secrets.UBICLOUD_IMAGES_BLOB_STORAGE_CERTS }}
+        GH_APP_CLIENT_ID: ${{ secrets.GH_APP_CLIENT_ID }}
+        GH_INSTALLATION_ID: ${{ secrets.GH_INSTALLATION_ID }}
+        GH_APP_CLIENT_SECRET: ${{ secrets.GH_APP_CLIENT_SECRET }}
+        GH_APP_NAME: ${{ secrets.GH_APP_NAME }}
+        GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+        GH_APP_WEBHOOK_SECRET: ${{ secrets.GH_APP_WEBHOOK_SECRET }}
+        GH_PAT: ${{ secrets.GH_PAT }}
+        GH_APP_ID: ${{ secrets.GH_APP_ID }}
+        GH_RUNNER_SERVICE_PROJECT_ID: ${{ secrets.GH_RUNNER_SERVICE_PROJECT_ID }}
 
       run: timeout 40m foreman start
 

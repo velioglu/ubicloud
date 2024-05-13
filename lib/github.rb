@@ -18,7 +18,8 @@ module Github
       iss: Config.gh_app_id
     }
     jwt = JWT.encode(key, private_key, "RS256")
-
+    puts "2121212121212121212121212121212121"
+    puts "jwt_10: #{jwt[0..10]}"
     Octokit::Client.new(bearer_token: jwt)
   end
 
@@ -36,6 +37,8 @@ module Github
 
   def self.failed_deliveries(since, max_page = 50)
     client = Github.app_client
+    puts "39393939393939393939393939393939"
+    puts "Client is #{client.inspect}"
     all_deliveries = client.get("/app/hook/deliveries?per_page=100")
     page = 1
     while (next_url = client.last_response.rels[:next]&.href) && (since < all_deliveries.last[:delivered_at])

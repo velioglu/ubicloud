@@ -67,7 +67,7 @@ RSpec.describe Prog::Vm::GithubRunner do
 
     before do
       runner_project = Project.create_with_id(name: "default").tap { _1.associate_with_project(_1) }
-      allow(Config).to receive(:github_runner_service_project_id).and_return(runner_project.id)
+      allow(Config).to receive(:gh_runner_service_project_id).and_return(runner_project.id)
     end
 
     it "provisions a VM if the pool is not existing" do
@@ -79,7 +79,7 @@ RSpec.describe Prog::Vm::GithubRunner do
       expect(vm.sshable.unix_user).to eq("runneradmin")
       expect(vm.family).to eq("standard")
       expect(vm.cores).to eq(2)
-      expect(vm.projects.map(&:id)).to include(Config.github_runner_service_project_id)
+      expect(vm.projects.map(&:id)).to include(Config.gh_runner_service_project_id)
     end
 
     it "provisions a new vm if pool is valid but there is no vm" do

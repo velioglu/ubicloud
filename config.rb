@@ -87,6 +87,7 @@ module Config
   override :minimum_invoice_charge_threshold, 0.5, float
 
   # GitHub Runner App
+  optional :gh_installation_id, string
   optional :gh_app_name, string
   optional :gh_app_id, string
   optional :gh_app_client_id, string, clear: true
@@ -94,7 +95,9 @@ module Config
   optional :gh_app_private_key, string, clear: true
   optional :gh_app_webhook_secret, string, clear: true
   optional :vm_pool_project_id, string
-  optional :github_runner_service_project_id, string
+  optional :gh_runner_service_project_id, string
+  optional :gh_pat, string
+  optional :gh_app_id, int
   override :enable_github_workflow_poller, true, bool
 
   # Minio

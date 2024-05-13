@@ -4,6 +4,9 @@ class CloverWeb
   hash_branch(:webhook_prefix, "github") do |r|
     r.post true do
       body = r.body.read
+      puts "7777777777777777777777777"
+      puts body
+      puts "7777777777777777777777777"
       unless check_signature(r.headers["x-hub-signature-256"], body)
         response.status = 401
         r.halt
@@ -55,16 +58,23 @@ class CloverWeb
   end
 
   def handle_workflow_job(data)
+    puts "6161616161616161616161616161"
+    puts data.inspect
+    puts "6161616161616161616161616161"
     unless (installation = GithubInstallation[installation_id: data["installation"]["id"]])
+      puts "646464646464646464646464646464"
       return error("Unregistered installation")
     end
 
+    puts "656565656565656565656565656565"
     unless (job = data["workflow_job"])
       Clog.emit("No workflow_job in the payload") { {workflow_job_missing: {installation_id: installation.id, action: data["action"]}} }
       return error("No workflow_job in the payload")
     end
 
     unless (label = job.fetch("labels").find { Github.runner_labels.key?(_1) })
+      puts "7676767676767676767676767676767"
+      puts label
       return error("Unmatched label")
     end
 
@@ -73,6 +83,10 @@ class CloverWeb
     end
 
     if data["action"] == "queued"
+      puts "79797979797979797979797979797979"
+      puts installation.inspect
+      puts label
+      puts "82828282828282828282828282828282"
       st = Prog::Vm::GithubRunner.assemble(
         installation,
         repository_name: data["repository"]["full_name"],
@@ -99,6 +113,7 @@ class CloverWeb
 
     case data["action"]
     when "in_progress"
+      puts "11111121212121111111111212111"
       runner.log_duration("runner_started", Time.parse(job["started_at"]) - Time.parse(job["created_at"]))
       success("GithubRunner[#{runner.ubid}] picked job #{job.fetch("id")}")
     when "completed"

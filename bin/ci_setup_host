@@ -4,24 +4,59 @@
 require_relative "../loader"
 require "time"
 require "optparse"
+require "net/http"
+require "uri"
+require "json"
 
 def main(options)
   hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
   wait_until(hetzner_server_st, "wait")
 
+  puts "15151515151515151515151515"
   vmh = hetzner_server_st.subject
   image_download_st = vmh.download_boot_image("github-ubuntu-2204")
   wait_until(image_download_st)
 
+  puts "19191919191919191919191919"
   project = Project.create_with_id(name: "Test Project")
 
-  # 50637119 is the preinstall app's installation id
   GithubInstallation.create_with_id(
-    installation_id: 50637119,
+    installation_id: Config.gh_app_id,
     name: "velioglu",
     type: "User",
     project_id: project.id
   )
+  puts "29292929292929292929292929"
+
+  # Replace with your details
+  repo = "velioglu/github_e2e"
+  workflow_id = "test.yml"
+  token = Config.gh_pat
+  branch = "main" # or the branch you want to trigger the workflow on
+
+  puts "37373737373737373737373737"
+
+  # Construct the API endpoint
+  url = URI("https://api.github.com/repos/#{repo}/actions/workflows/#{workflow_id}/dispatches")
+
+  # Prepare the HTTP request
+  http = Net::HTTP.new(url.host, url.port)
+  http.use_ssl = true
+  request = Net::HTTP::Post.new(url)
+  request["Accept"] = "application/vnd.github.v3+json"
+  request["Authorization"] = "token #{token}"
+  request.body = {ref: branch}.to_json
+
+  # Send the request
+  response = http.request(request)
+  puts "Response: #{response.code} #{response.message}"
+  puts response.body if response.code.to_i >= 400
+
+  puts "55555555555555555555555555"
+
+  sleep(300)
+  Semaphore.incr(hetzner_server_st.id, "destroy")
+  wait_until(hetzner_server_st)
 end
 
 def wait_until(st, label = nil)

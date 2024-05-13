@@ -45,7 +45,7 @@ class Prog::Vm::GithubRunner < Prog::Base
 
     vm_st = Prog::Vm::Nexus.assemble_with_sshable(
       "runneradmin",
-      Config.github_runner_service_project_id,
+      Config.gh_runner_service_project_id,
       name: github_runner.ubid.to_s,
       size: label_data["vm_size"],
       location: label_data["location"],
