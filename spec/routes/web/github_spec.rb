@@ -13,7 +13,7 @@ RSpec.describe Clover, "github" do
   before do
     login(user.email)
 
-    allow(Config).to receive(:github_app_name).and_return("runner-app")
+    allow(Config).to receive(:gh_app_name).and_return("runner-app")
     allow(Github).to receive(:oauth_client).and_return(oauth_client)
     allow(Octokit::Client).to receive(:new).and_return(adhoc_client)
   end

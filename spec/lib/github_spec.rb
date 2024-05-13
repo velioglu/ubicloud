@@ -2,13 +2,13 @@
 
 RSpec.describe Github do
   it "creates oauth client" do
-    expect(Octokit::Client).to receive(:new).with(client_id: Config.github_app_client_id, client_secret: Config.github_app_client_secret)
+    expect(Octokit::Client).to receive(:new).with(client_id: Config.gh_app_client_id, client_secret: Config.gh_app_client_secret)
 
     described_class.oauth_client
   end
 
   it "creates app client" do
-    expect(Config).to receive(:github_app_id).and_return("123456")
+    expect(Config).to receive(:gh_app_id).and_return("123456")
     private_key = instance_double(OpenSSL::PKey::RSA)
     expect(private_key).to receive(:is_a?).with(OpenSSL::PKey::RSA).and_return(true)
     expect(private_key).to receive(:sign).and_return("signed")

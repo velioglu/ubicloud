@@ -13,7 +13,7 @@ RSpec.describe Clover, "github" do
   end
 
   it "disabled when GitHub app name not provided" do
-    allow(Config).to receive(:github_app_name).and_return(nil)
+    allow(Config).to receive(:gh_app_name).and_return(nil)
 
     visit project.path
     within "#desktop-menu" do
@@ -23,12 +23,12 @@ RSpec.describe Clover, "github" do
 
     visit "#{project.path}/github"
     expect(page.status_code).to eq(501)
-    expect(page).to have_content "GitHub Action Runner integration is not enabled. Set GITHUB_APP_NAME to enable it."
+    expect(page).to have_content "GitHub Action Runner integration is not enabled. Set GH_APP_NAME to enable it."
   end
 
   context "when GitHub Integration enabled" do
     before do
-      allow(Config).to receive(:github_app_name).and_return("runner-app")
+      allow(Config).to receive(:gh_app_name).and_return("runner-app")
     end
 
     it "raises forbidden when does not have permissions" do

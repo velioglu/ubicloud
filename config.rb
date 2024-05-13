@@ -87,12 +87,12 @@ module Config
   override :minimum_invoice_charge_threshold, 0.5, float
 
   # GitHub Runner App
-  optional :github_app_name, string
-  optional :github_app_id, string
-  optional :github_app_client_id, string, clear: true
-  optional :github_app_client_secret, string, clear: true
-  optional :github_app_private_key, string, clear: true
-  optional :github_app_webhook_secret, string, clear: true
+  optional :gh_app_name, string
+  optional :gh_app_id, string
+  optional :gh_app_client_id, string, clear: true
+  optional :gh_app_client_secret, string, clear: true
+  optional :gh_app_private_key, string, clear: true
+  optional :gh_app_webhook_secret, string, clear: true
   optional :vm_pool_project_id, string
   optional :github_runner_service_project_id, string
   override :enable_github_workflow_poller, true, bool

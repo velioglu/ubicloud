@@ -11,7 +11,7 @@ RSpec.describe Clover, "github" do
   let(:runner) { GithubRunner.create_with_id(installation_id: installation.id, label: "ubicloud", repository_name: "my-repo", runner_id: 123, vm_id: "46683a25-acb1-4371-afe9-d39f303e44b4") }
 
   before do
-    allow(Config).to receive(:github_app_webhook_secret).and_return("secret")
+    allow(Config).to receive(:gh_app_webhook_secret).and_return("secret")
   end
 
   it "fails if no signature header" do

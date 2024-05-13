@@ -34,7 +34,7 @@ class CloverWeb
   def check_signature(signature, body)
     return false unless signature
     method, actual_digest = signature.split("=")
-    expected_digest = OpenSSL::HMAC.hexdigest(method, Config.github_app_webhook_secret, body)
+    expected_digest = OpenSSL::HMAC.hexdigest(method, Config.gh_app_webhook_secret, body)
     Rack::Utils.secure_compare(actual_digest, expected_digest)
   end
 
