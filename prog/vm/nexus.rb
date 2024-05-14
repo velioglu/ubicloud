@@ -197,6 +197,14 @@ class Prog::Vm::Nexus < Prog::Base
           [["accepting"], [vm.location], [], []]
         end
 
+      puts "200200200200200200200200"
+      puts distinct_storage_devices
+      puts allocation_state_filter
+      puts location_filter
+      puts location_preference
+      puts host_filter
+      puts gpu_enabled
+      puts "200200200200200200200200"
       Scheduling::Allocator.allocate(
         vm, frame["storage_volumes"],
         distinct_storage_devices: distinct_storage_devices,
@@ -247,6 +255,7 @@ class Prog::Vm::Nexus < Prog::Base
       vm.nics.each { _1.incr_setup_nic }
       hop_run
     when "NotStarted", "Failed"
+      puts "BV nexus.rb 258"
       secrets_json = JSON.generate({
         storage: storage_secrets
       })

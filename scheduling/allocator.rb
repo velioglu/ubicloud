@@ -18,6 +18,18 @@ module Scheduling::Allocator
       location_filter,
       location_preference
     )
+    puts "212121212121212121212121212121"
+    puts "request: #{request.inspect}"
+    puts "232323232323232323232323232323"
+
+    puts "252525252525252525252525252525"
+    puts VmHost.all.inspect
+    puts StorageDevice.all.inspect
+    puts Address.all.inspect
+    puts AssignedHostAddress.all.inspect
+    puts AssignedVmAddress.all.inspect
+    puts "272727272727272727272727272727"
+
     allocation = Allocation.best_allocation(request)
     fail "#{vm} no space left on any eligible host" unless allocation
 
