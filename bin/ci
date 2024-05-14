@@ -4,67 +4,19 @@
 require_relative "../loader"
 require "time"
 require "optparse"
-require "net/http"
-require "uri"
-require "json"
 
 def main(options)
-  project = Project.create_with_id(name: "Test Project")
-  project.associate_with_project(project)
-
-  # Tricky way to have project with pre-defined config value
-  puts "15151515151515151515151515"
-  github_service_project = Project.create_with_id(name: "Github Service Project")
-  DB.run "UPDATE project SET id = '#{Config.gh_runner_service_project_id}' WHERE id = '#{github_service_project.id}'"
-  github_service_project = Project[Config.gh_runner_service_project_id]
-  github_service_project.reload
-  github_service_project.associate_with_project(github_service_project)
-
-  puts "23232323232323232323232323"
   hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
   wait_until(hetzner_server_st, "wait")
 
-  vmh = VmHost.first
+  encrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: true, test_reboot: true)
+  log(encrypted_vms_st, "storage_encrypted: true")
+  wait_until(encrypted_vms_st)
 
-  puts "29292929292929292929292929"
-  image_download_st = vmh.download_boot_image("github-ubuntu-2204")
-  wait_until(image_download_st)
+  unencrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: false, test_reboot: false)
+  log(unencrypted_vms_st, "storage_encrypted: false")
+  wait_until(unencrypted_vms_st)
 
-  puts "32323232323232323232323232"
-  GithubInstallation.create_with_id(
-    installation_id: Config.gh_installation_id,
-    name: "velioglu",
-    type: "User",
-    project_id: project.id
-  )
-
-  # Replace with your details
-  repo = "velioglu/github_e2e"
-  workflow_id = "test.yml"
-  token = Config.gh_pat
-  branch = "main" # or the branch you want to trigger the workflow on
-
-  puts "48484848484848484848484848"
-
-  # Construct the API endpoint
-  url = URI("https://api.github.com/repos/#{repo}/actions/workflows/#{workflow_id}/dispatches")
-
-  # Prepare the HTTP request
-  http = Net::HTTP.new(url.host, url.port)
-  http.use_ssl = true
-  request = Net::HTTP::Post.new(url)
-  request["Accept"] = "application/vnd.github.v3+json"
-  request["Authorization"] = "token #{token}"
-  request.body = {ref: branch}.to_json
-
-  # Send the request
-  response = http.request(request)
-  puts "Response: #{response.code} #{response.message}"
-  puts response.body if response.code.to_i >= 400
-
-  puts "55555555555555555555555555"
-
-  sleep(300)
   Semaphore.incr(hetzner_server_st.id, "destroy")
   wait_until(hetzner_server_st)
 end
