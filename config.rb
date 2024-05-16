@@ -95,6 +95,8 @@ module Config
   optional :github_app_webhook_secret, string, clear: true
   optional :vm_pool_project_id, string
   optional :github_runner_service_project_id, string
+  optional :github_test_installation_id, string
+  optional :github_test_personal_access_token, string
   override :enable_github_workflow_poller, true, bool
 
   # Minio
