@@ -19,6 +19,12 @@ def main(options)
     wait_until(unencrypted_vms_st)
   end
 
+  github_runner_test_cases = options[:test_cases].select { _1.include?("github_runner") }
+  if github_runner_test_cases
+    runner_st = Prog::Test::GithubRunnerGroup.assemble(options[:vm_host_id], github_runner_test_cases)
+    wait_until(runner_st)
+  end
+
   Semaphore.incr(hetzner_server_st.id, "destroy")
   wait_until(hetzner_server_st)
 end
