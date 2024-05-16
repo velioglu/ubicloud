@@ -8,14 +8,14 @@ require "yaml"
 class Prog::Test::GithubRunnerGroup < Prog::Test::Base
   def self.assemble(vm_host_id, test_cases)
 
-    github_service_project = Project.create(name: "Github Runner Service Project") { _1.id = Config.github_runner_service_project_id}
+    github_service_project = Project.create(name: "Github Runner Service Project") { _1.id = Config.github_test_service_project_id}
     github_service_project.associate_with_project(github_service_project)
 
     github_test_project = Project.create_with_id(name: "Github Runner Test Project")
     GithubInstallation.create_with_id(
-      installation_id: Config.github_runner_test_installation_id,
-      name: Config.github_runner_test_installation_name,
-      type: Config.github_runner_test_installation_type,
+      installation_id: Config.github_test_installation_id,
+      name: "GithubTestInstallationName",
+      type: "GithubTestInstallationType",
       project_id: github_test_project.id
     )
     github_test_project.associate_with_project(github_test_project)
