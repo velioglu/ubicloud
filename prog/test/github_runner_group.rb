@@ -37,12 +37,14 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
   end
 
   label def download_boot_images
+    puts "YYY: runner group 40: start download_boot_images"
     frame["test_cases"].each do |test_case|
       bud Prog::DownloadBootImage, {"subject_id" => vm_host_id, "image_name" => tests[test_case]["image_name"]}
     hop_wait_download_boot_images
   end
 
   label def wait_download_boot_images
+    puts "YYY: runner group 47: wait_download_boot_images"
     reap
     hop_trigger_remote_test_runs if leaf?
     vm_host.sshable.cmd("ls -lah /var/storage/images")
@@ -50,7 +52,9 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
   end
 
   label def trigger_remote_test_runs
+    puts "YYY: runner group 55: trigger_remote_test_runs"
     frame["test_cases"].each do |test_case|
+      puts "YYY: runner group 57: trigger_remote_test_runs test_case: #{test_case}"
       remote_test_runs = tests[test_case]["remote_runs"]
       remote_test_runs.each do |remote_run|
         trigger_remote_test_run(remote_run["name"], remote_run["workflow_name"], remote_run["branch_name"])
@@ -61,11 +65,13 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
   end
 
   label def check_remote_test_runs
+    puts "YYY: runner group 68: check_remote_test_runs"
     sleep 240
     hop_finish
   end
 
   label def finish
+    puts "YYY: runner group 74: finish"
     Project[frame["github_service_project_id"]].destroy
     Project[frame["github_test_project_id"]].destroy
     pop "VmGroup tests finished!"
@@ -73,6 +79,7 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
 
   # TODO: Control the request response and fail if necessary
   def trigger_remote_test_run(repo_name, workflow_name, branch_name)
+    puts "YYY: runner group 79: trigger_remote_test_run"
     url = URI("https://api.github.com/repos/#{repo_name}/actions/workflows/#{workflow_name}/dispatches")
 
     http = Net::HTTP.new(url.host, url.port)

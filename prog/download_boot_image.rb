@@ -10,7 +10,7 @@ class Prog::DownloadBootImage < Prog::Base
   end
 
   def version
-    @version ||= frame.fetch("version") || default_boot_image_version(image_name)
+    @version ||= frame.fetch("version", default_boot_image_version(image_name))
   end
 
   def download_from_blob_storage?

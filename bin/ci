@@ -6,11 +6,13 @@ require "time"
 require "optparse"
 
 def main(options)
-  puts "Running test cases: #{options[:test_cases].join(", ")}"
+  puts "YYY ci 8: Starting test cases: #{options[:test_cases]}"
+  puts "YYY ci 9: Running test cases: #{options[:test_cases].join(", ")}"
   hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
   wait_until(hetzner_server_st, "wait")
 
   if options[:test_cases].include?("vm")
+    puts "YYY ci 9: Running vm test cases"
     encrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: true, test_reboot: true)
     log(encrypted_vms_st, "storage_encrypted: true")
     wait_until(encrypted_vms_st)
@@ -22,6 +24,7 @@ def main(options)
 
   github_runner_test_cases = options[:test_cases].select { _1.include?("github_runner") }
   if github_runner_test_cases
+    puts "YYY ci 9: Running github runner test cases: #{github_runner_test_cases.join(", ")}"
     runner_st = Prog::Test::GithubRunnerGroup.assemble(options[:vm_host_id], github_runner_test_cases)
     wait_until(runner_st)
   end
