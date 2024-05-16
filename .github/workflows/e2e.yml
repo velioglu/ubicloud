@@ -27,7 +27,7 @@ on:
       test_cases:
         description: 'Comma-separated list of test cases (vm)'
         required: true
-        default: 'vm'
+        default: 'github_runner_ubuntu_2204,github_runner_ubuntu_2004,vm'
         type: string
 
 jobs:

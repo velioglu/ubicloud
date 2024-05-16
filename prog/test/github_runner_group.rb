@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-require "net/http"
-require "uri"
-require "json"
+require "octokit"
 require "yaml"
 
 class Prog::Test::GithubRunnerGroup < Prog::Test::Base
+  FAIL_CONCLUSIONS = ["action_required", "cancelled", "failure", "skipped", "stale", "timed_out"]
+  IN_PROGRESS_CONCLUSIONS = ["in_progress", "queued", "requested", "waiting", "pending", "neutral"]
+
   def self.assemble(vm_host_id, test_cases)
 
     github_service_project = Project.create(name: "Github Runner Service Project") { _1.id = Config.github_runner_service_project_id}
@@ -22,7 +23,7 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
 
     Strand.create_with_id(
       prog: "Test::GithubRunnerGroup",
-      label: "start"
+      label: "start",
       stack: [{
         "vm_host_id" => vm_host_id,
         "test_cases" => test_cases,
@@ -37,64 +38,117 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
   end
 
   label def download_boot_images
-    puts "YYY: runner group 40: start download_boot_images"
     frame["test_cases"].each do |test_case|
       bud Prog::DownloadBootImage, {"subject_id" => vm_host_id, "image_name" => tests[test_case]["image_name"]}
+    end
+
     hop_wait_download_boot_images
   end
 
   label def wait_download_boot_images
-    puts "YYY: runner group 47: wait_download_boot_images"
     reap
-    hop_trigger_remote_test_runs if leaf?
-    vm_host.sshable.cmd("ls -lah /var/storage/images")
+    hop_trigger_test_runs if leaf?
+    VmHost[vm_host_id].sshable.cmd("ls -lah /var/storage/images")
     donate
   end
 
-  label def trigger_remote_test_runs
-    puts "YYY: runner group 55: trigger_remote_test_runs"
-    frame["test_cases"].each do |test_case|
-      puts "YYY: runner group 57: trigger_remote_test_runs test_case: #{test_case}"
-      remote_test_runs = tests[test_case]["remote_runs"]
-      remote_test_runs.each do |remote_run|
-        trigger_remote_test_run(remote_run["name"], remote_run["workflow_name"], remote_run["branch_name"])
+  label def trigger_test_runs
+    test_runs.each do |run|
+      trigger_test_run(run["name"], run["workflow_name"], run["branch_name"])
+    end
+
+    # To make sure that the remote test runs are triggered
+    sleep 30
+
+    hop_check_test_runs
+  end
+
+  label def check_test_runs
+    test_runs.each do |run|
+      conclusion = test_run_conclusion(run["name"], run["workflow_name"], run["branch_name"])
+      if FAIL_CONCLUSIONS.include?(conclusion)
+        fail_test "Test run for #{run["name"]}, #{run["workflow_name"]}, #{run["branch_name"]} failed with conclusion #{conclusion}"
+      elsif IN_PROGRESS_CONCLUSIONS.include?(conclusion) || conclusion.nil?
+        nap 15
       end
     end
 
-    hop_check_remote_test_runs
-  end
-
-  label def check_remote_test_runs
-    puts "YYY: runner group 68: check_remote_test_runs"
-    sleep 240
     hop_finish
   end
 
   label def finish
-    puts "YYY: runner group 74: finish"
-    Project[frame["github_service_project_id"]].destroy
-    Project[frame["github_test_project_id"]].destroy
-    pop "VmGroup tests finished!"
+    cleanup
+    pop "GithubRunnerGroup tests are finished!"
   end
 
-  # TODO: Control the request response and fail if necessary
-  def trigger_remote_test_run(repo_name, workflow_name, branch_name)
-    puts "YYY: runner group 79: trigger_remote_test_run"
-    url = URI("https://api.github.com/repos/#{repo_name}/actions/workflows/#{workflow_name}/dispatches")
-
-    http = Net::HTTP.new(url.host, url.port)
-    http.use_ssl = true
-    request = Net::HTTP::Post.new(url)
-    request["Authorization"] = "token #{Config.github_test_personal_access_token}"
-    request.body = {ref: branch_name}.to_json
-    http.request(request)
+  label def failed
+    cleanup
+    nap 15
   end
 
-  def self.tests
+  def trigger_test_run(repo_name, workflow_name, branch_name)
+    url = "repos/#{repo_name}/actions/workflows/#{workflow_name}/dispatches"
+    payload = { ref: branch_name }
+
+    begin
+      response = client.post(url, payload)
+    rescue Octokit::Error => e
+      fail_test "Can not trigger workflow for #{repo_name}, #{workflow_name}, #{branch_name} due to #{e.message}"
+    end
+  end
+
+  def test_run_conclusion(repo_name, workflow_name, branch_name)
+    run_id = get_latest_run_id(repo_name, workflow_name, branch_name)
+    get_run_conclusion(repo_name, run_id)
+  end
+
+  # Function to get the latest workflow run ID
+  def get_latest_run_id(repo_name, workflow_name, branch)
+    runs = client.workflow_runs("#{repo_name}", workflow_name, { branch: branch })
+    latest_run = runs[:workflow_runs].first
+    latest_run[:id]
+  end
+
+  # Function to check the status of a workflow run
+  def get_run_conclusion(repo_name, run_id)
+    run = client.workflow_run("#{repo_name}", run_id)
+    return run[:conclusion]
+  end
+
+  def cleanup
+    Project[frame["github_service_project_id"]]&.destroy
+    Project[frame["github_test_project_id"]]&.destroy
+    cancel_test_runs
+  end
+
+  def cancel_test_runs
+    test_runs.each do |run|
+      cancel_test_run(run["name"], run["workflow_name"], run["branch_name"])
+    end
+  end
+
+  def cancel_test_run(repo_name, workflow_name, branch_name)
+    run_id = get_latest_run_id(repo_name, workflow_name, branch_name)
+    begin
+      response = client.cancel_workflow_run(repo_name, run_id)
+    rescue
+      puts "Workflow run #{run_id} for #{repo_name} has already been finished"
+    end
+  end
+
+  def tests
     @@tests ||= YAML.load_file("config/github_runner_e2e_tests.yml").to_h { [_1["name"], _1] }
+  end
+
+  def test_runs
+     @@test_runs ||= frame["test_cases"].flat_map { tests[_1]["runs"] }
   end
 
   def vm_host_id
     @@vm_host_id ||= frame["vm_host_id"] || VmHost.first.id
+  end
+
+  def client
+    @@client ||= Octokit::Client.new(access_token: Config.github_test_personal_access_token)
   end
 end
