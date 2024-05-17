@@ -36,7 +36,6 @@ def wait_until(st, label = nil)
       st.destroy
       exit 1
     end
-
     log(st.reload, "waiting #{label ? "for #{label}" : "exit"}")
     sleep 10
   end

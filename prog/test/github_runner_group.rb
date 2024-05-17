@@ -57,7 +57,7 @@ class Prog::Test::GithubRunnerGroup < Prog::Test::Base
       trigger_test_run(run["name"], run["workflow_name"], run["branch_name"])
     end
 
-    # To make sure that the remote test runs are triggered
+    # To make sure that test runs are triggered
     sleep 30
 
     hop_check_test_runs
