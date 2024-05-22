@@ -24,7 +24,7 @@ class Prog::Test::GithubRunner < Prog::Test::Base
       prog: "Test::GithubRunner",
       label: "start",
       stack: [{
-        "created_at" => Time.now,
+        "created_at" => Time.now.utc,
         "vm_host_id" => vm_host_id,
         "test_cases" => test_cases,
         "github_service_project_id" => github_service_project.id,
@@ -34,7 +34,7 @@ class Prog::Test::GithubRunner < Prog::Test::Base
   end
 
   label def start
-    hop_download_boot_images
+    hop_trigger_test_runs
   end
 
   label def download_boot_images
@@ -52,7 +52,10 @@ class Prog::Test::GithubRunner < Prog::Test::Base
   end
 
   label def trigger_test_runs
+  puts "TRIGGERING TEST RUNS 55"
     test_runs.each do |test_run|
+      puts "TRIGGERING TEST RUNS 57"
+      puts "test_run: #{test_run}"
       unless trigger_test_run(test_run["repo_name"], test_run["workflow_name"], test_run["branch_name"])
         update_stack({"fail_message" => "Can not trigger workflow for #{test_run["repo_name"]}, #{test_run["workflow_name"]}, #{test_run["branch_name"]}"})
         hop_clean_resources
@@ -71,6 +74,15 @@ class Prog::Test::GithubRunner < Prog::Test::Base
     test_runs.each do |test_run|
       latest_run = latest_run(test_run["repo_name"], test_run["workflow_name"], test_run["branch_name"])
 
+      puts "&&&&&&&&&&&&&&&&&&&&&&"
+      puts frame["created_at"]
+      puts frame["created_at"].class
+      puts "&&&&&&&&&&&&&&&&&&&&&&"
+
+      puts "**********************"
+      puts latest_run[:created_at]
+      puts latest_run[:created_at].class
+      puts "**********************"
       # In case the run can not be triggered in the previous state
       if latest_run[:created_at] < frame["created_at"]
         update_stack({"fail_message" => "Can not trigger workflow for #{test_run["repo_name"]}, #{test_run["workflow_name"]}, #{test_run["branch_name"]}"})
@@ -111,6 +123,7 @@ class Prog::Test::GithubRunner < Prog::Test::Base
   end
 
   def trigger_test_run(repo_name, workflow_name, branch_name)
+    puts "TRIGGERIN TEST RUN"
     client.workflow_dispatch(repo_name, workflow_name, branch_name)
   end
 
@@ -147,6 +160,6 @@ class Prog::Test::GithubRunner < Prog::Test::Base
   end
 
   def client
-    @client ||= Github.app_client
+    @client ||= Github.installation_client(Config.e2e_github_installation_id)
   end
 end

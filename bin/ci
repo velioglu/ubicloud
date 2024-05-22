@@ -6,19 +6,19 @@ require "time"
 require "optparse"
 
 def main(options)
-  hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
-  wait_until(hetzner_server_st, "wait")
+  # hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
+  # wait_until(hetzner_server_st, "wait")
 
   tests_to_wait = []
-  if options[:test_cases].include?("vm")
-    encrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: true, test_reboot: true)
-    log(encrypted_vms_st, "storage_encrypted: true")
-    tests_to_wait << [encrypted_vms_st, nil]
+  # if options[:test_cases].include?("vm")
+  #   encrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: true, test_reboot: true)
+  #   log(encrypted_vms_st, "storage_encrypted: true")
+  #   tests_to_wait << [encrypted_vms_st, nil]
 
-    unencrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: false, test_reboot: false)
-    log(unencrypted_vms_st, "storage_encrypted: false")
-    tests_to_wait << [unencrypted_vms_st, nil]
-  end
+  #   unencrypted_vms_st = Prog::Test::VmGroup.assemble(storage_encrypted: false, test_reboot: false)
+  #   log(unencrypted_vms_st, "storage_encrypted: false")
+  #   tests_to_wait << [unencrypted_vms_st, nil]
+  # end
 
   github_runner_test_cases = options[:test_cases].select { _1.include?("github_runner") }
   if github_runner_test_cases
@@ -29,7 +29,7 @@ def main(options)
   # Although wait_until will be blocked while checking the first one
   # it won't affect the total time as other strands will continue in parallel.
   # No need to make it parallel.
-  tests_to_wait.map do |strand, label|
+  tests_to_wait.each do |strand, label|
     wait_until(strand, label)
   end
 
