@@ -3,14 +3,32 @@ name: E2E CI
 on:
   workflow_dispatch:
     inputs:
+      lifespan_minutes:
+        description: Runner lifespan in minutes
+        required: true
+        type: number
+        default: 60
+      size:
+        type: choice
+        description: Runner size
+        default: standard-2
+        options:
+          - standard-2
+          - standard-4
+          - standard-8
+          - standard-16
+      boot_image:
+        type: choice
+        description: Runner boot image
+        default: ubuntu-2204
+        options:
+          - ubuntu-2204
+          - ubuntu-2004
       test_cases:
         description: 'Comma-separated list of test cases (vm)'
         required: true
-        default: 'vm'
+        default: 'github_runner_ubuntu_2204'
         type: string
-
-  schedule:
-    - cron:  '0 */1 * * *'
 
 jobs:
   run-ci:

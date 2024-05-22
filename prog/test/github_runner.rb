@@ -94,8 +94,7 @@ class Prog::Test::GithubRunner < Prog::Test::Base
 
     nap 15 if GithubRunner.any?
 
-    GithubInstallation.first.repositories.each(&:incr_destroy)
-    GithubInstallation.first.destroy
+    GithubRepository.each { _1.destroy }
     Project[frame["github_service_project_id"]]&.destroy
     Project[frame["github_test_project_id"]]&.destroy
 
