@@ -3,35 +3,14 @@ name: E2E CI
 on:
   workflow_dispatch:
     inputs:
-      lifespan_minutes:
-        description: Runner lifespan in minutes
+      test_cases:
+        description: 'Comma-separated list of test cases (vm)'
         required: true
-        type: number
-        default: 60
-      size:
-        type: choice
-        description: Runner size
-        default: standard-2
-        options:
-          - standard-2
-          - standard-4
-          - standard-8
-          - standard-16
-      boot_image:
-        type: choice
-        description: Runner boot image
-        default: ubuntu-2204
-        options:
-          - ubuntu-2204
-          - ubuntu-2004
+        default: 'vm,github_runner_ubuntu_2204'
+        type: string
 
-      arch:
-        type: choice
-        description: Runner architecture
-        default: x64
-        options:
-          - x64
-          - arm64
+  schedule:
+    - cron:  '0 */1 * * *'
 
 jobs:
   run-ci:
@@ -94,7 +73,7 @@ jobs:
 
     - name: Add e2e script to Procfile
       run: |
-        echo "e2e: bin/ci --test-cases=${{ github.event_name != 'workflow_dispatch' && 'vm' || inputs.test_cases }}" >> Procfile
+        echo "e2e: bin/ci --test-cases=${{ github.event_name != 'workflow_dispatch' && 'vm,github_runner_ubuntu_2204' || inputs.test_cases }}" >> Procfile
 
     - name: Run services
       env:
