@@ -6,4 +6,4 @@ clover_freeze
 
 run(Config.development? ? Unreloader : Clover.freeze.app)
 
-Tilt.finalize! unless Config.development? || Config.e2e_test?
+Tilt.finalize! unless Config.development?

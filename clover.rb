@@ -5,10 +5,13 @@ require_relative "model"
 require "roda"
 
 class Clover < Roda
+  puts "0000000000000000000"
   def self.freeze
     # :nocov:
     unless Config.test?
+      puts "1111111111111111111"
       Sequel::Model.freeze_descendents
+      puts "1313131313131313131"
       DB.freeze
     end
     # :nocov:
@@ -16,7 +19,9 @@ class Clover < Roda
   end
 
   route do |r|
+    puts "212121212121212121"
     subdomain = r.host.split(".").first
+    puts "242424242424242424"
     if subdomain == "api"
       r.run CloverApi
     end
