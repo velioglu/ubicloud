@@ -6,8 +6,8 @@ require "time"
 require "optparse"
 
 def main(options)
-  # hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
-  # wait_until(hetzner_server_st, "wait")
+  hetzner_server_st = Prog::Test::HetznerServer.assemble(vm_host_id: options[:vm_host_id])
+  wait_until(hetzner_server_st, "wait")
 
   tests_to_wait = []
   # if options[:test_cases].include?("vm")
