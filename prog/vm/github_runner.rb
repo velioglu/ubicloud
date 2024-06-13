@@ -12,8 +12,6 @@ class Prog::Vm::GithubRunner < Prog::Base
       fail "Invalid GitHub runner label: #{label}"
     end
 
-    puts "15151515151515"
-
     DB.transaction do
       repository = Prog::Github::GithubRepositoryNexus.assemble(installation, repository_name, default_branch).subject
       github_runner = GithubRunner.create_with_id(

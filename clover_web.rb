@@ -9,8 +9,6 @@ class CloverWeb < Roda
   opts[:check_dynamic_arity] = false
   opts[:check_arity] = :warn
 
-  puts "AA12"
-
   plugin :default_headers, {
     "Content-Type" => "text/html",
     "X-Frame-Options" => "deny",
@@ -20,8 +18,6 @@ class CloverWeb < Roda
     Config.production? ? {"Strict-Transport-Security" => "max-age=2629800; includeSubDomains"} : {}
     # :nocov:
   )
-
-  puts "AA24"
 
   plugin :content_security_policy do |csp|
     csp.default_src :none
@@ -33,8 +29,6 @@ class CloverWeb < Roda
     csp.base_uri :none
     csp.frame_ancestors :none
   end
-
-  puts "AA36"
 
   plugin :route_csrf do |token|
     flash["error"] = "An invalid security token submitted with this request, please try again"
@@ -62,7 +56,6 @@ class CloverWeb < Roda
   end
 
   if Config.development?
-    puts "AA65"
     # :nocov:
     plugin :exception_page
     class RodaRequest
@@ -98,9 +91,7 @@ class CloverWeb < Roda
     cookie_options: {secure: !(Config.development? || Config.test?)},
     secret: Config.clover_session_secret
 
-  puts "AA101"
   autoload_routes("web")
-  puts "AA103"
 
   plugin :rodauth do
     enable :argon2, :change_login, :change_password, :close_account, :create_account,
@@ -343,14 +334,10 @@ class CloverWeb < Roda
   end
 
   route do |r|
-    puts "AA346"
     r.public
-    puts "AA348"
     r.assets
 
-    puts "AA12"
     r.on "webhook" do
-      puts "341341341341341341"
       r.hash_branches(:webhook_prefix)
     end
     check_csrf!

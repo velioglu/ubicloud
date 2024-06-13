@@ -3,27 +3,15 @@
 class CloverWeb
   hash_branch(:webhook_prefix, "github") do |r|
     r.post true do
-      puts "66666666666666666"
       body = r.body.read
-      puts "8888888888888888"
-      puts body
-      puts "1010101010101010"
       unless check_signature(r.headers["x-hub-signature-256"], body)
         response.status = 401
         r.halt
       end
 
-      puts "1212121212121212"
-
       response.headers["Content-Type"] = "application/json"
 
-      puts "XXX1616161616"
-
       data = JSON.parse(body)
-      puts "XXX1818181818"
-      puts data
-      puts "XXX2020202020"
-      case r.headers["x-github-event"]
       when "installation"
         return handle_installation(data)
       when "workflow_job"
@@ -70,20 +58,14 @@ class CloverWeb
       return error("Unregistered installation")
     end
 
-    puts "626262626262"
-
     unless (job = data["workflow_job"])
       Clog.emit("No workflow_job in the payload") { {workflow_job_missing: {installation_id: installation.id, action: data["action"]}} }
       return error("No workflow_job in the payload")
     end
 
-    puts "696969696969"
-
     unless (label = job.fetch("labels").find { Github.runner_labels.key?(_1) })
       return error("Unmatched label")
     end
-
-    puts "757575757575"
 
     if data["action"] == "queued"
       puts "787878787878"
