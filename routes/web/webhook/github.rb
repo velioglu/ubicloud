@@ -12,6 +12,7 @@ class CloverWeb
       response.headers["Content-Type"] = "application/json"
 
       data = JSON.parse(body)
+      case r.headers["x-github-event"]
       when "installation"
         return handle_installation(data)
       when "workflow_job"
@@ -68,7 +69,6 @@ class CloverWeb
     end
 
     if data["action"] == "queued"
-      puts "787878787878"
       st = Prog::Vm::GithubRunner.assemble(
         installation,
         repository_name: data["repository"]["full_name"],

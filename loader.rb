@@ -15,7 +15,7 @@ require "rack/unreloader"
 
 REPL = false unless defined? REPL
 
-Unreloader = Rack::Unreloader.new(reload: Config.development? || Config.e2e_test?, autoload: true) { Clover }
+Unreloader = Rack::Unreloader.new(reload: Config.development?, autoload: true) { Clover }
 
 Unreloader.autoload("#{__dir__}/db.rb") { "DB" }
 Unreloader.autoload("#{__dir__}/ubid.rb") { "UBID" }
