@@ -34,7 +34,7 @@ class Prog::Test::GithubRunner < Prog::Test::Base
   end
 
   label def start
-    hop_download_boot_images
+    hop_trigger_test_runs
   end
 
   label def download_boot_images
