@@ -32,6 +32,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
 
       - name: Extract metadata for Docker
         id: meta
@@ -52,7 +55,6 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=ubicloud-${{ matrix.runner }}
+          cache-from: type=gha,scope=ubicloud-${{ matrix.runner }},url=http://127.0.0.1:51123/
           cache-to: type=gha,mode=max,scope=ubicloud-${{ matrix.runner }},url=http://127.0.0.1:51123/
-          outputs: type=image,name=${{ env.IMAGE_NAME }},name-canonical=true,url=http://127.0.0.1:51123/
-          add-hosts: host.docker.internal=host-gateway
+          outputs: type=image,name=${{ env.IMAGE_NAME }},name-canonical=true
