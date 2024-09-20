@@ -55,6 +55,6 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=ubicloud-${{ matrix.runner }},url=http://127.0.0.1:51123/
-          cache-to: type=gha,mode=max,scope=ubicloud-${{ matrix.runner }},url=http://127.0.0.1:51123/
+          cache-from: type=gha,scope=ubicloud-${{ matrix.runner }}
+          cache-to: type=gha,mode=max,scope=ubicloud-${{ matrix.runner }}
           outputs: type=image,name=${{ env.IMAGE_NAME }},name-canonical=true
