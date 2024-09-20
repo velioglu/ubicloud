@@ -9,9 +9,6 @@ on:
         default: 'vm,github_runner_ubuntu_2204,github_runner_ubuntu_2004'
         type: string
 
-  schedule:
-    - cron:  '0 */1 * * *'
-
 jobs:
   run-ci:
     runs-on: ubicloud
