@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubicloud-standard-2
             platform: linux/amd64
 
     steps:
@@ -62,5 +62,5 @@ jobs:
       - name: sudo ls runneradmin
         run: sudo ls -la /home/runneradmin
 
-      #- name: cat cacheproxy log 2
-      #  run: sudo cat /home/runneradmin/cacheproxy.log
+      - name: cat cacheproxy log 2
+        run: sudo cat /home/runneradmin/cacheproxy.log
