@@ -61,3 +61,4 @@ jobs:
 
       - name: cat cacheproxy log 2
         run: sudo cat /home/runneradmin/cacheproxy.log
+
