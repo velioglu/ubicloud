@@ -20,6 +20,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: sleep 10
+        run: sleep 10
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
