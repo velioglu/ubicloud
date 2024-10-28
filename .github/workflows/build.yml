@@ -1,4 +1,4 @@
-name: Build 2
+name: Build Docker Image (updated version)
 
 on:
   workflow_dispatch:
@@ -19,9 +19,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-
-      - name: sleep 10
-        run: sleep 10
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -47,14 +44,19 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=ubicloud-${{ matrix.runner }}
           cache-to: type=gha,mode=max,scope=ubicloud-${{ matrix.runner }}
-          outputs: type=image,name=${{ env.IMAGE_NAME }},name-canonical=true
-        continue-on-error: true
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
-      - name: ls all
-        run: ls -la
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
 
-      - name: sudo ls runner
-        run: sudo ls -la /home/runner
-
-      - name: sudo ls runneradmin
-        run: sudo ls -la /home/runneradmin
+      - name: Upload digest
+        if: ${{ inputs.push_image }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.runner }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
