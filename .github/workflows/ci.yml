@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ruby-ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubicloud]
+    name: Ruby CI - ${{matrix.runs-on}}
+    runs-on: ${{matrix.runs-on}}
+
+    env:
+      DB_USER: clover
+      DB_PASSWORD: nonempty
+      DB_NAME: clover_test
+
+    services:
+      postgres:
+        image: postgres:15.4
+        env:
+          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_DB: ${{ env.DB_NAME }}
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+    - name: Perform superuser-only actions, then remove superuser
+      run: |
+        psql "postgres://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:5432/${{ env.DB_NAME }}" \
+          -c "CREATE EXTENSION citext; CREATE EXTENSION btree_gist; CREATE ROLE clover_password PASSWORD '${{ env.DB_PASSWORD }}' LOGIN; ALTER ROLE ${{ env.DB_USER }} NOSUPERUSER"
+
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Install ruby for ARM runners if not cached
+      if: matrix.runs-on == 'ubicloud-arm'
+      run: |
+        RUBY_VERSION="$(grep -E '^ruby ' .tool-versions | cut -d' ' -f2)"
+        if [ ! -f $RUNNER_TOOL_CACHE/Ruby/$RUBY_VERSION/arm64.complete ]; then
+          git clone https://github.com/rbenv/ruby-build.git
+          sudo ./ruby-build/install.sh
+          sudo ruby-build "$RUBY_VERSION" $RUNNER_TOOL_CACHE/Ruby/$RUBY_VERSION/arm64
+          sudo chown -R runner:runner $RUNNER_TOOL_CACHE/Ruby
+          touch $RUNNER_TOOL_CACHE/Ruby/$RUBY_VERSION/arm64.complete
+          rm -rf ruby-build
+        fi
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: .tool-versions
+        bundler-cache: true
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+         node-version: "22"
+
+    - name: Install node packages
+      run: npm ci
+
+    - name: Run erb-formatter
+      run: bundle exec rake linter:erb_formatter
+
+    - name: Run rubocop
+      run: bundle exec rake linter:rubocop
+
+    - name: Run brakeman
+      run: bundle exec rake linter:brakeman
+
+    - name: Run linter:openapi
+      run: bundle exec rake linter:openapi
+
+    - name: Check that source code formatters make no changes
+      run: git diff --stat --exit-code
+
+    - name: Apply migrations
+      env:
+        CLOVER_DATABASE_URL: postgres://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:5432/${{ env.DB_NAME }}
+      run: bundle exec rake test_up
+
+    - name: Run controlplane tests
+      env:
+        CLOVER_DATABASE_URL: postgres://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@localhost:5432/${{ env.DB_NAME }}
+        CLOVER_SESSION_SECRET: kbaf1V3biZ+R2QqFahgDLB5/lSomwxQusA4PwROUkFS1srn0xM/I47IdLW7HjbQoxWri6/aVgtkqTLFiP65h9g==
+        CLOVER_COLUMN_ENCRYPTION_KEY: TtlY0+hd4lvedPkNbu5qsj5H7giPKJSRX9KDBrvid7c=
+      run: bundle exec rake
+
+    - name: Run dataplane tests
+      run: bundle exec rspec -O /dev/null rhizome
+
+    - name: Archive code coverage results
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: coverage/
