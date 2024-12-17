@@ -73,6 +73,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: nvidia-smi
+        if: ${{ contains(inputs.label, 'gpu') }}
+        run: nvidia-smi
+
       - name: uname -mr
         run: uname -mr
 
@@ -81,10 +85,6 @@ jobs:
 
       - name: printenv
         run: printenv
-
-      - name: nvidia-smi
-        if: ${{ contains(inputs.label, 'gpu') }}
-        run: nvidia-smi
 
       - name: IPv4 SSH Command
         if: ${{ inputs.lifespan_minutes > 0 }}
