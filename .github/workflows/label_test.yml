@@ -77,6 +77,11 @@ jobs:
         if: ${{ contains(inputs.label, 'gpu') }}
         run: nvidia-smi
 
+      - name: run smi from container
+        if: ${{ contains(inputs.label, 'gpu') }}
+        run: |
+          docker run --rm --gpus all nvidia/cuda:latest nvidia-smi
+
       - name: uname -mr
         run: uname -mr
 
