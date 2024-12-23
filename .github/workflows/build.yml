@@ -13,15 +13,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubicloud-standard-2
+          - runner: ubuntu-latest
             platform: linux/amd64
-          - runner: ubicloud-standard-2
+          - runner: ubuntu-latest
             platform: linux/amd64
-          - runner: ubicloud-standard-2
+          - runner: ubuntu-latest
             platform: linux/amd64
-          - runner: ubicloud-standard-2
+          - runner: ubuntu-latest
             platform: linux/amd64
-          - runner: ubicloud-standard-2
+          - runner: ubuntu-latest
             platform: linux/amd64
 
     steps:
