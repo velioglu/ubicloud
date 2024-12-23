@@ -15,6 +15,14 @@ jobs:
         include:
           - runner: ubicloud-standard-2
             platform: linux/amd64
+          - runner: ubicloud-standard-2
+            platform: linux/amd64
+          - runner: ubicloud-standard-2
+            platform: linux/amd64
+          - runner: ubicloud-standard-2
+            platform: linux/amd64
+          - runner: ubicloud-standard-2
+            platform: linux/amd64
 
     steps:
       - name: Check out code
@@ -55,9 +63,6 @@ jobs:
           cache-from: type=gha,scope=ubicloud-${{ matrix.runner }}
           cache-to: type=gha,mode=max,scope=ubicloud-${{ matrix.runner }}
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
-
-      - name: cat cacheproxy log
-        run: sudo cat /home/runneradmin/cacheproxy.log
 
       - name: Export digest
         run: |
